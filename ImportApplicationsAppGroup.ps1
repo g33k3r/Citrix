@@ -98,8 +98,20 @@ if ($Cloud.IsPresent) {
     }
 }
 
-Write-Verbose "Start Logging" -Verbose
-Start-Transcript $LogPS | Out-Null
+# Attempt to stop any existing transcripts
+try {
+    Stop-Transcript | Out-Null
+} catch {
+    # Ignore errors if no transcript is running
+}
+
+# Start a new transcript
+try {
+    Start-Transcript -Path $LogPS -ErrorAction Stop
+} catch {
+    Write-Warning "Could not start the transcript. Check permissions and path: $LogPS" -Verbose
+    Exit
+}
 
 # Check if resources folder exists (to import icons)
 if (-not (Test-Path -Path $IconSource)) {
@@ -135,12 +147,15 @@ foreach ($app in $Apps) {
                 Name = $app.Name;
                 PublishedName = $app.Name;
                 Description = $app.Description;
-                ClientFolder = $app.ClientFolder;
                 Enabled = $app.Enabled;
                 WorkingDirectory = $app.WorkingDirectory;
                 AdminFolderName = $app.AdminFolderName;
                 UserFilterEnabled = $app.UserFilterEnabled;
                 ApplicationGroupUid = $ApplicationGroupUid
+            }
+            # Conditionally add ClientFolder if it's not null or empty
+            if (![string]::IsNullOrWhiteSpace($app.ClientFolder)) {
+                $newAppParams['ClientFolder'] = $app.ClientFolder
             }
             $newApp = New-BrokerApplication @newAppParams
 
