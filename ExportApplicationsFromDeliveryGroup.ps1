@@ -39,10 +39,6 @@ Param (
 $LogPS = "${env:SystemRoot}\Temp\AppsFromDeliveryGroupExport.log"
 $StartDTM = Get-Date
 
-# Optionally set configuration without being prompted
-#$DeliveryGroup = "Delivery Group Name"
-#$OutputLocation = "C:\temp"
-
 function GetApps {
     $Count = $Apps.Count
     $StartCount = 1
@@ -105,7 +101,7 @@ if ([string]::IsNullOrWhiteSpace($DeliveryGroup)) {
 } else {
     Write-Verbose "Delivery Group: $DeliveryGroup specified. Processing all Applications in $DeliveryGroup" -Verbose
     $DG = Get-BrokerDesktopGroup -Name $DeliveryGroup
-    $Apps = Get-BrokerApplication -AssociatedDesktopGroupUids $DG.Uid
+    $Apps = Get-BrokerApplication | Where-Object { $_.AssociatedDesktopGroupUids -contains $DG.Uid }
 }
 
 GetApps
