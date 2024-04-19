@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-Imports applications from an XML file, setting users, tags, and AppGroup memberships as defined in the export.
+Imports applications from an XML file, setting users, tags, and AppGroup memberships interactively.
 
 .DESCRIPTION
-Requires an XML export from a delivery group, including applications, users, tags, and AppGroup memberships.
+Requires an XML export from a delivery group, including applications and related properties.
 
 .EXAMPLE
 .\ImportApplicationsFromAppGroup.ps1
@@ -49,6 +49,13 @@ if ($FileBrowser.FileName) {
     Exit
 }
 
+function Get-ApplicationGroup {
+    $appGroups = Get-BrokerApplicationGroup
+    $appGroups | ForEach-Object { Write-Host "$($_.Name) - $($_.Uid)" }
+    $selectedGroup = Read-Host "Please enter the Application Group Name from the list above for the application"
+    return $appGroups | Where-Object { $_.Name -eq $selectedGroup }
+}
+
 $Count = ($Apps | Measure-Object).Count
 $StartCount = 1
 
@@ -61,7 +68,13 @@ foreach ($App in $Apps) {
         $StartCount++
         continue
     } else {
-        $MakeAppCmd = "New-BrokerApplication -ApplicationType HostedOnDesktop"
+        $AppGroup = Get-ApplicationGroup
+        if ($null -eq $AppGroup) {
+            Write-Warning "Invalid or no Application Group selected. Skipping application: $($App.PublishedName)"
+            continue
+        }
+
+        $MakeAppCmd = "New-BrokerApplication -ApplicationType HostedOnDesktop -ApplicationGroup $($AppGroup.Name)"
         $failed = $false
 
         # Prepare the command by dynamically appending properties if they are not null or empty
@@ -87,18 +100,11 @@ foreach ($App in $Apps) {
         if (-not $failed) {
             try {
                 Invoke-Expression $MakeAppCmd
-                Write-Verbose "Successfully created application: $($App.PublishedName)"
+                Write-Verbose "Successfully created application: $($App.PublishedName) in Application Group: $($AppGroup.Name)"
             } catch {
                 Write-Warning "Failed to create application: $($App.PublishedName). Error: $_"
                 $failed = $true
             }
-        }
-
-        # Additional setup such as adding users and tags if the application creation was successful and not failed
-        if (-not $failed) {
-            AddUsersToApp -App $App
-            AddTags -App $App
-            AddToAdditionalAppGroups -App $App
         }
 
         $StartCount++
