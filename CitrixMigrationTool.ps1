@@ -108,16 +108,22 @@ $copyButton.Add_Click({
     # Copy the selected applications to the destination controller within the specified application group
     try {
         foreach ($appName in $selectedApplications) {
-            # Query the application details from the source controller
-            $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
+            try {
+                # Query the application details from the source controller
+                $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
 
-            # Create the application in the destination controller within the specified application group
-            New-BrokerApplication -AdminAddress $destinationController -Name $app.Name -ApplicationType $app.ApplicationType -ApplicationGroup $selectedAppGroup -CommandLineExecutable $app.CommandLineExecutable -CommandLineArguments $app.CommandLineArguments -Enabled $app.Enabled -DesktopGroup $app.DesktopGroup -PublishedName $app.PublishedName
+                # Create the application in the destination controller within the specified application group
+                New-BrokerApplication -AdminAddress $destinationController -Name $app.Name -ApplicationType $app.ApplicationType -ApplicationGroup $selectedAppGroup -CommandLineExecutable $app.CommandLineExecutable -CommandLineArguments $app.CommandLineArguments -Enabled $app.Enabled -DesktopGroup $app.DesktopGroup -PublishedName $app.PublishedName
+
+                [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
+            } catch {
+                [System.Windows.MessageBox]::Show("Failed to copy application: $($appName). Error: $_")
+            }
         }
 
         [System.Windows.MessageBox]::Show("Applications copied successfully.")
     } catch {
-        [System.Windows.MessageBox]::Show("Failed to copy applications to the destination controller. Please check the details and try again.")
+        [System.Windows.MessageBox]::Show("Failed to copy applications to the destination controller. Error: $_")
     }
 })
 
