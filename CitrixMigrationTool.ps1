@@ -140,14 +140,11 @@ $copyButton.Add_Click({
                     Enabled = $app.Enabled
                     PublishedName = $app.PublishedName
                     AdminFolder = $selectedAppGroupName
+                    IconUid = $app.IconUid
                 }
 
                 if ($null -ne $app.DesktopGroup) {
                     $params["DesktopGroup"] = $app.DesktopGroup
-                }
-
-                if ($null -ne $app.IconUid) {
-                    $params["IconUid"] = $app.IconUid
                 }
 
                 if ($null -ne $app.Visibility) {
