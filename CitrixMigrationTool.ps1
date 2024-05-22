@@ -112,7 +112,7 @@ $copyButton.Add_Click({
                 # Query the application details from the source controller
                 $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
 
-                # Create the application in the destination controller within the specified application group
+                # Build the parameters dynamically, checking for null values
                 $params = @{
                     AdminAddress = $destinationController
                     Name = $app.Name
@@ -128,6 +128,18 @@ $copyButton.Add_Click({
                     $params["DesktopGroup"] = $app.DesktopGroup
                 }
 
+                if ($null -ne $app.IconUid) {
+                    $params["IconUid"] = $app.IconUid
+                }
+
+                if ($null -ne $app.Visibility) {
+                    $params["Visibility"] = $app.Visibility
+                }
+
+                # Log the parameters for debugging
+                Write-Host "Copying application with parameters: $($params | Out-String)"
+
+                # Create the application in the destination controller within the specified application group
                 New-BrokerApplication @params
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
