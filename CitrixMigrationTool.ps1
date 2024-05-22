@@ -90,10 +90,18 @@ $copyButton.Add_Click({
     $destinationController = $destinationControllerBox.Text
 
     # Get the selected application group
-    $selectedAppGroup = $applicationGroupListBox.SelectedItem
+    $selectedAppGroupName = $applicationGroupListBox.SelectedItem
 
-    if ([string]::IsNullOrEmpty($selectedAppGroup)) {
+    if ([string]::IsNullOrEmpty($selectedAppGroupName)) {
         [System.Windows.MessageBox]::Show("Please select an application group.")
+        return
+    }
+
+    # Retrieve the application group object from the destination controller
+    $selectedAppGroup = Get-BrokerApplicationGroup -AdminAddress $destinationController -Name $selectedAppGroupName
+
+    if ($null -eq $selectedAppGroup) {
+        [System.Windows.MessageBox]::Show("Selected application group not found on the destination controller.")
         return
     }
 
@@ -117,7 +125,7 @@ $copyButton.Add_Click({
                     AdminAddress = $destinationController
                     Name = $app.Name
                     ApplicationType = $app.ApplicationType
-                    ApplicationGroup = $selectedAppGroup
+                    ApplicationGroupUid = $selectedAppGroup.Uid
                     CommandLineExecutable = $app.CommandLineExecutable
                     CommandLineArguments = $app.CommandLineArguments
                     Enabled = $app.Enabled
