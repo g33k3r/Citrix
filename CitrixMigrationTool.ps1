@@ -97,6 +97,14 @@ $copyButton.Add_Click({
         return
     }
 
+    # Retrieve the application group object from the destination controller
+    $selectedAppGroup = Get-BrokerApplicationGroup -AdminAddress $destinationController -Name $selectedAppGroupName
+
+    if ($null -eq $selectedAppGroup) {
+        [System.Windows.MessageBox]::Show("Selected application group not found on the destination controller.")
+        return
+    }
+
     # Get the selected applications
     $selectedApplications = $applicationsList.SelectedItems
 
@@ -141,6 +149,9 @@ $copyButton.Add_Click({
 
                 # Create the application in the destination controller within the specified application group
                 New-BrokerApplication @params
+
+                # Now, update the application's application group
+                Add-BrokerApplicationToApplicationGroup -AdminAddress $destinationController -AppGroupUid $selectedAppGroup.Uid -ApplicationUid $app.Uid
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
