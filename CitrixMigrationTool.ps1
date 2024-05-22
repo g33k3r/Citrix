@@ -5,7 +5,7 @@ Import-Module Citrix*
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Citrix Applications Query" Height="450" Width="600">
+        Title="Citrix Applications Query" Height="500" Width="600">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -22,8 +22,8 @@ Import-Module Citrix*
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
         <ListBox x:Name="ApplicationsList" Grid.Row="2" Margin="10" SelectionMode="Multiple"/>
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10">
-            <Label Content="Application Group:" Width="120"/>
-            <TextBox x:Name="ApplicationGroup" Width="200" Margin="0,0,10,0"/>
+            <Label Content="Application Groups:" Width="120"/>
+            <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
             <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
         </StackPanel>
     </Grid>
@@ -38,15 +38,16 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 # Get UI elements
 $sourceControllerBox = $window.FindName("SourceController")
 $destinationControllerBox = $window.FindName("DestinationController")
-$applicationGroupBox = $window.FindName("ApplicationGroup")
+$applicationGroupListBox = $window.FindName("ApplicationGroupList")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
 $applicationsList = $window.FindName("ApplicationsList")
 
 # Define the event handler for the query button click
 $queryButton.Add_Click({
-    # Clear the list box
+    # Clear the list boxes
     $applicationsList.Items.Clear()
+    $applicationGroupListBox.Items.Clear()
 
     # Get the source and destination controller addresses
     $sourceController = $sourceControllerBox.Text
@@ -68,17 +69,31 @@ $queryButton.Add_Click({
     } catch {
         [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
     }
+
+    # Query the application groups from the destination controller
+    try {
+        $appGroups = Get-BrokerApplicationGroup -AdminAddress $destinationController
+
+        # Populate the list box with application group names
+        foreach ($group in $appGroups) {
+            $applicationGroupListBox.Items.Add($group.Name)
+        }
+    } catch {
+        [System.Windows.MessageBox]::Show("Failed to query application groups from the destination controller. Please check the address and try again.")
+    }
 })
 
 # Define the event handler for the copy button click
 $copyButton.Add_Click({
-    # Get the source and destination controller addresses and the application group name
+    # Get the source and destination controller addresses
     $sourceController = $sourceControllerBox.Text
     $destinationController = $destinationControllerBox.Text
-    $applicationGroup = $applicationGroupBox.Text
 
-    if ([string]::IsNullOrEmpty($applicationGroup)) {
-        [System.Windows.MessageBox]::Show("Please enter the application group name.")
+    # Get the selected application group
+    $selectedAppGroup = $applicationGroupListBox.SelectedItem
+
+    if ([string]::IsNullOrEmpty($selectedAppGroup)) {
+        [System.Windows.MessageBox]::Show("Please select an application group.")
         return
     }
 
@@ -97,7 +112,7 @@ $copyButton.Add_Click({
             $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
 
             # Create the application in the destination controller within the specified application group
-            New-BrokerApplication -AdminAddress $destinationController -Name $app.Name -ApplicationType $app.ApplicationType -ApplicationGroup $applicationGroup -CommandLineExecutable $app.CommandLineExecutable -CommandLineArguments $app.CommandLineArguments -Enabled $app.Enabled -DesktopGroup $app.DesktopGroup -PublishedName $app.PublishedName
+            New-BrokerApplication -AdminAddress $destinationController -Name $app.Name -ApplicationType $app.ApplicationType -ApplicationGroup $selectedAppGroup -CommandLineExecutable $app.CommandLineExecutable -CommandLineArguments $app.CommandLineArguments -Enabled $app.Enabled -DesktopGroup $app.DesktopGroup -PublishedName $app.PublishedName
         }
 
         [System.Windows.MessageBox]::Show("Applications copied successfully.")
