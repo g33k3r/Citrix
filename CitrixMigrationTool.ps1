@@ -159,12 +159,9 @@ $copyButton.Add_Click({
                 # Create the application in the destination controller within the specified application group
                 $newApp = New-BrokerApplication @params
 
-                # Set the folder path for administrators
-                Set-BrokerAdminFolderMetadata -AdminFolderName $selectedAppGroupName -Name "Application.$($newApp.Name).AdminFolder" -Value $selectedAppGroupName
-
                 # Set the folder path for users if specified
                 if (-not [string]::IsNullOrEmpty($userFolder)) {
-                    Set-BrokerApplication -Name $newApp.Name -UserFolderPath $userFolder
+                    Set-BrokerApplication -Name $newApp.Name -ClientFolder $userFolder
                 }
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
