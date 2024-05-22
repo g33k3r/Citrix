@@ -130,9 +130,18 @@ $copyButton.Add_Click({
                     CommandLineArguments = $app.CommandLineArguments
                     Enabled = $app.Enabled
                     PublishedName = $app.PublishedName
-                    DesktopGroup = $app.DesktopGroup
-                    IconUid = $app.IconUid
-                    Visibility = $app.Visibility
+                }
+
+                if ($null -ne $app.DesktopGroup) {
+                    $params["DesktopGroup"] = $app.DesktopGroup
+                }
+
+                if ($null -ne $app.IconUid) {
+                    $params["IconUid"] = $app.IconUid
+                }
+
+                if ($null -ne $app.Visibility) {
+                    $params["Visibility"] = $app.Visibility
                 }
 
                 # Log the parameters for debugging
