@@ -129,6 +129,12 @@ $copyButton.Add_Click({
                 # Query the application details from the source controller
                 $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
 
+                # Fetch the icon from the source controller
+                $icon = Get-BrokerIcon -AdminAddress $sourceController -Uid $app.IconUid
+
+                # Add the icon to the destination controller
+                $newIcon = New-BrokerIcon -AdminAddress $destinationController -EncodedIconData $icon.EncodedIconData
+
                 # Build the parameters dynamically, checking for null values
                 $params = @{
                     AdminAddress = $destinationController
@@ -140,7 +146,7 @@ $copyButton.Add_Click({
                     Enabled = $app.Enabled
                     PublishedName = $app.PublishedName
                     AdminFolder = $selectedAppGroupName
-                    IconUid = $app.IconUid
+                    IconUid = $newIcon.Uid
                 }
 
                 if ($null -ne $app.DesktopGroup) {
