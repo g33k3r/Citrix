@@ -139,6 +139,7 @@ $copyButton.Add_Click({
                     CommandLineArguments = $app.CommandLineArguments
                     Enabled = $app.Enabled
                     PublishedName = $app.PublishedName
+                    AdminFolder = $selectedAppGroupName
                 }
 
                 if ($null -ne $app.DesktopGroup) {
