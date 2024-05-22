@@ -5,12 +5,13 @@ Import-Module Citrix*
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Citrix Applications Query" Height="500" Width="600">
+        Title="Citrix Applications Query" Height="550" Width="600">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
@@ -24,6 +25,10 @@ Import-Module Citrix*
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10">
             <Label Content="Application Groups:" Width="120"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
+        </StackPanel>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
+            <Label Content="Folder (for users):" Width="120"/>
+            <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
             <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
         </StackPanel>
     </Grid>
@@ -39,6 +44,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $sourceControllerBox = $window.FindName("SourceController")
 $destinationControllerBox = $window.FindName("DestinationController")
 $applicationGroupListBox = $window.FindName("ApplicationGroupList")
+$userFolderBox = $window.FindName("UserFolder")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
 $applicationsList = $window.FindName("ApplicationsList")
@@ -105,6 +111,9 @@ $copyButton.Add_Click({
         return
     }
 
+    # Get the folder for users
+    $userFolder = $userFolderBox.Text
+
     # Get the selected applications
     $selectedApplications = $applicationsList.SelectedItems
 
@@ -150,8 +159,11 @@ $copyButton.Add_Click({
                 # Create the application in the destination controller within the specified application group
                 $newApp = New-BrokerApplication @params
 
-                # Now, update the application's folder path to match the application group name
+                # Now, update the application's folder path for both administrators and users
                 Set-BrokerApplication -Name $newApp.Name -FolderPath $selectedAppGroupName
+                if (-not [string]::IsNullOrEmpty($userFolder)) {
+                    Set-BrokerApplication -Name $newApp.Name -UserFolderPath $userFolder
+                }
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
