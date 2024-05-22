@@ -125,7 +125,7 @@ $copyButton.Add_Click({
                     AdminAddress = $destinationController
                     Name = $app.Name
                     ApplicationType = $app.ApplicationType
-                    ApplicationGroupUid = $selectedAppGroup.Uid
+                    ApplicationGroup = $selectedAppGroupName
                     CommandLineExecutable = $app.CommandLineExecutable
                     CommandLineArguments = $app.CommandLineArguments
                     Enabled = $app.Enabled
