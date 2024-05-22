@@ -113,7 +113,22 @@ $copyButton.Add_Click({
                 $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
 
                 # Create the application in the destination controller within the specified application group
-                New-BrokerApplication -AdminAddress $destinationController -Name $app.Name -ApplicationType $app.ApplicationType -ApplicationGroup $selectedAppGroup -CommandLineExecutable $app.CommandLineExecutable -CommandLineArguments $app.CommandLineArguments -Enabled $app.Enabled -DesktopGroup $app.DesktopGroup -PublishedName $app.PublishedName
+                $params = @{
+                    AdminAddress = $destinationController
+                    Name = $app.Name
+                    ApplicationType = $app.ApplicationType
+                    ApplicationGroup = $selectedAppGroup
+                    CommandLineExecutable = $app.CommandLineExecutable
+                    CommandLineArguments = $app.CommandLineArguments
+                    Enabled = $app.Enabled
+                    PublishedName = $app.PublishedName
+                }
+
+                if ($null -ne $app.DesktopGroup) {
+                    $params["DesktopGroup"] = $app.DesktopGroup
+                }
+
+                New-BrokerApplication @params
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
