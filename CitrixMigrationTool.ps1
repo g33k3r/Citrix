@@ -1,62 +1,66 @@
-# Load necessary assemblies for WPF
-Add-Type -AssemblyName PresentationFramework
+# Load the required Citrix PowerShell SDK module
+Import-Module Citrix*
 
-# XAML for the GUI
-$xaml = @"
+# Create the WPF GUI
+[xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        Title="Citrix App Migration Tool" Height="300" Width="400">
-    <StackPanel>
-        <Label Content="Source Controller:"/>
-        <ComboBox Name="sourceController" SelectionChanged="OnSourceControllerChanged"/>
-        <Label Content="Applications:"/>
-        <ListBox Name="applicationList"/>
-        <Label Content="Target Controller:"/>
-        <ComboBox Name="targetController"/>
-        <Button Content="Migrate" Name="migrateButton" Margin="10"/>
-    </StackPanel>
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Citrix Applications Query" Height="400" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <Label Content="Source Controller:" Width="120"/>
+            <TextBox x:Name="SourceController" Width="200" Margin="0,0,10,0"/>
+            <Label Content="Destination Controller:" Width="150"/>
+            <TextBox x:Name="DestinationController" Width="200"/>
+        </StackPanel>
+        <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
+        <ListBox x:Name="ApplicationsList" Grid.Row="2" Margin="10"/>
+    </Grid>
 </Window>
 "@
 
-# Read XAML and create objects
-$reader = New-Object System.Xml.XmlNodeReader $xaml
+# Parse the XAML
+Add-Type -AssemblyName PresentationFramework
+$reader = (New-Object System.Xml.XmlNodeReader $xaml)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
-# Function to populate controllers and applications
-function PopulateControllers {
-    # Placeholder values - replace these with actual data retrieval logic
-    $controllers = @("Controller1", "Controller2") # Example controller names
-    $sourceController.ItemsSource = $controllers
-    $targetController.ItemsSource = $controllers
-}
+# Get UI elements
+$sourceControllerBox = $window.FindName("SourceController")
+$destinationControllerBox = $window.FindName("DestinationController")
+$queryButton = $window.FindName("QueryButton")
+$applicationsList = $window.FindName("ApplicationsList")
 
-function PopulateApplications($controllerName) {
-    # Placeholder function - replace with actual Citrix command to list applications
-    $applications = @("App1", "App2", "App3") # Example applications
-    $applicationList.ItemsSource = $applications
-}
+# Define the event handler for the button click
+$queryButton.Add_Click({
+    # Clear the list box
+    $applicationsList.Items.Clear()
 
-# Accessing GUI elements
-$sourceController = $window.FindName("sourceController")
-$applicationList = $window.FindName("applicationList")
-$targetController = $window.FindName("targetController")
-$migrateButton = $window.FindName("migrateButton")
+    # Get the source and destination controller addresses
+    $sourceController = $sourceControllerBox.Text
+    $destinationController = $destinationControllerBox.Text
 
-# Event handlers
-$sourceController.Add_SelectionChanged({
-    param($sender, $e)
-    PopulateApplications($sourceController.SelectedItem)
+    if ([string]::IsNullOrEmpty($sourceController) -or [string]::IsNullOrEmpty($destinationController)) {
+        [System.Windows.MessageBox]::Show("Please enter both source and destination controller addresses.")
+        return
+    }
+
+    # Query the applications from the source controller
+    try {
+        $applications = Get-BrokerApplication -AdminAddress $sourceController
+
+        # Populate the list box with application names
+        foreach ($app in $applications) {
+            $applicationsList.Items.Add($app.Name)
+        }
+    } catch {
+        [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
+    }
 })
 
-$migrateButton.Add_Click({
-    $selectedApplication = $applicationList.SelectedItem
-    $target = $targetController.SelectedItem
-    # Placeholder migration command - replace with actual Citrix command
-    Write-Host "Migrating application $selectedApplication to $target"
-    # Example: Move-BrokerApplication -Name $selectedApplication -TargetControllerName $target
-})
-
-# Initial population of data
-PopulateControllers
-
-# Show the GUI
+# Show the window
 $window.ShowDialog()
