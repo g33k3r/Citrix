@@ -113,7 +113,7 @@ $copyButton.Add_Click({
         return
     }
 
-    # Copy the selected applications to the destination controller within the specified application group
+    # Copy the selected applications to the destination controller within the specified application group and folder
     try {
         foreach ($appName in $selectedApplications) {
             try {
@@ -130,28 +130,19 @@ $copyButton.Add_Click({
                     CommandLineArguments = $app.CommandLineArguments
                     Enabled = $app.Enabled
                     PublishedName = $app.PublishedName
-                }
-
-                if ($null -ne $app.DesktopGroup) {
-                    $params["DesktopGroup"] = $app.DesktopGroup
-                }
-
-                if ($null -ne $app.IconUid) {
-                    $params["IconUid"] = $app.IconUid
-                }
-
-                if ($null -ne $app.Visibility) {
-                    $params["Visibility"] = $app.Visibility
+                    DesktopGroup = $app.DesktopGroup
+                    IconUid = $app.IconUid
+                    Visibility = $app.Visibility
                 }
 
                 # Log the parameters for debugging
                 Write-Host "Copying application with parameters: $($params | Out-String)"
 
                 # Create the application in the destination controller within the specified application group
-                New-BrokerApplication @params
+                $newApp = New-BrokerApplication @params
 
-                # Now, update the application's application group
-                Add-BrokerApplicationToApplicationGroup -AdminAddress $destinationController -AppGroupUid $selectedAppGroup.Uid -ApplicationUid $app.Uid
+                # Now, update the application's folder path to match the application group name
+                Set-BrokerApplication -Uid $newApp.Uid -FolderPath $selectedAppGroupName
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
