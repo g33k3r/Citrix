@@ -157,6 +157,10 @@ $copyButton.Add_Click({
                     $params["Visibility"] = $app.Visibility
                 }
 
+                if ($null -ne $app.Description) {
+                    $params["Description"] = $app.Description
+                }
+
                 # Log the parameters for debugging
                 Write-Host "Copying application with parameters: $($params | Out-String)"
 
