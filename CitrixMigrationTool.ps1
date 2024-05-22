@@ -151,7 +151,7 @@ $copyButton.Add_Click({
                 $newApp = New-BrokerApplication @params
 
                 # Now, update the application's folder path to match the application group name
-                Set-BrokerApplication -Uid $newApp.Uid -FolderPath $selectedAppGroupName
+                Set-BrokerApplication -Name $newApp.Name -FolderPath $selectedAppGroupName
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
