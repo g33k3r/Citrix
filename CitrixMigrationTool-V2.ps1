@@ -21,7 +21,7 @@ Import-Module Citrix*
             <TextBox x:Name="DestinationController" Width="200"/>
         </StackPanel>
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
-        <DataGrid x:Name="ApplicationsDataGrid" Grid.Row="2" Margin="10" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended">
+        <DataGrid x:Name="ApplicationsDataGrid" Grid.Row="2" Margin="10" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
@@ -197,4 +197,8 @@ $copyButton.Add_Click({
 })
 
 # Show the window
-$window.ShowDialog()
+try {
+    $window.ShowDialog() | Out-Null
+} catch {
+    [System.Windows.MessageBox]::Show("An error occurred: $_")
+}
