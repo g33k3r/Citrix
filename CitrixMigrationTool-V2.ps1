@@ -5,7 +5,7 @@ Import-Module Citrix*
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Citrix Applications Query" Height="550" Width="600">
+        Title="Citrix App Migration Tool" Height="600" Width="700">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,13 +21,18 @@ Import-Module Citrix*
             <TextBox x:Name="DestinationController" Width="200"/>
         </StackPanel>
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
-        <ListBox x:Name="ApplicationsList" Grid.Row="2" Margin="10" SelectionMode="Multiple"/>
+        <DataGrid x:Name="ApplicationsDataGrid" Grid.Row="2" Margin="10" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
+            </DataGrid.Columns>
+        </DataGrid>
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10">
             <Label Content="Application Groups:" Width="120"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
         </StackPanel>
         <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
-            <Label Content="Folder (for users):" Width="120"/>
+            <Label Content="Application Category:" Width="120"/>
             <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
             <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
         </StackPanel>
@@ -47,12 +52,12 @@ $applicationGroupListBox = $window.FindName("ApplicationGroupList")
 $userFolderBox = $window.FindName("UserFolder")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
-$applicationsList = $window.FindName("ApplicationsList")
+$applicationsDataGrid = $window.FindName("ApplicationsDataGrid")
 
 # Define the event handler for the query button click
 $queryButton.Add_Click({
-    # Clear the list boxes
-    $applicationsList.Items.Clear()
+    # Clear the DataGrid and ListBox
+    $applicationsDataGrid.Items.Clear()
     $applicationGroupListBox.Items.Clear()
 
     # Get the source and destination controller addresses
@@ -68,9 +73,12 @@ $queryButton.Add_Click({
     try {
         $applications = Get-BrokerApplication -AdminAddress $sourceController
 
-        # Populate the list box with application names
+        # Populate the DataGrid with application names and enabled status
         foreach ($app in $applications) {
-            $applicationsList.Items.Add($app.Name)
+            $applicationsDataGrid.Items.Add([PSCustomObject]@{
+                Name = $app.Name
+                Enabled = $app.Enabled
+            })
         }
     } catch {
         [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
@@ -80,7 +88,7 @@ $queryButton.Add_Click({
     try {
         $appGroups = Get-BrokerApplicationGroup -AdminAddress $destinationController
 
-        # Populate the list box with application group names
+        # Populate the ListBox with application group names
         foreach ($group in $appGroups) {
             $applicationGroupListBox.Items.Add($group.Name)
         }
@@ -115,7 +123,7 @@ $copyButton.Add_Click({
     $userFolder = $userFolderBox.Text
 
     # Get the selected applications
-    $selectedApplications = $applicationsList.SelectedItems
+    $selectedApplications = $applicationsDataGrid.SelectedItems
 
     if ($selectedApplications.Count -eq 0) {
         [System.Windows.MessageBox]::Show("Please select at least one application to copy.")
@@ -124,13 +132,13 @@ $copyButton.Add_Click({
 
     # Copy the selected applications to the destination controller within the specified application group and folder
     try {
-        foreach ($appName in $selectedApplications) {
+        foreach ($selectedApp in $selectedApplications) {
             try {
                 # Query the application details from the source controller
-                $app = Get-BrokerApplication -AdminAddress $sourceController -Name $appName
+                $app = Get-BrokerApplication -AdminAddress $sourceController -Name $selectedApp.Name
 
                 # Separate folder name from published name
-                $appNameParts = $appName -split "\\"
+                $appNameParts = $app.Name -split "\\"
                 $appName = $appNameParts[-1]
 
                 # Fetch the icon from the source controller
@@ -178,7 +186,7 @@ $copyButton.Add_Click({
 
                 [System.Windows.MessageBox]::Show("Successfully copied application: $($app.Name)")
             } catch {
-                [System.Windows.MessageBox]::Show("Failed to copy application: $($appName). Error: $_")
+                [System.Windows.MessageBox]::Show("Failed to copy application: $($selectedApp.Name). Error: $_")
             }
         }
 
