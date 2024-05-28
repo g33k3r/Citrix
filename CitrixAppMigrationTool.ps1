@@ -5,12 +5,13 @@ Import-Module Citrix*
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Citrix Applications Query" Height="700" Width="700">
+        Title="Citrix App Migration Tool" Height="750" Width="700">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -29,15 +30,16 @@ Import-Module Citrix*
             </DataGrid.Columns>
         </DataGrid>
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10">
-            <Label Content="Application Groups:" Width="120"/>
+            <Label Content="Application Groups (from Destination Controller):" Width="250"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
         </StackPanel>
         <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
-            <Label Content="Folder (for users):" Width="120"/>
+            <Label Content="Satellite Zone Name:" Width="150"/>
             <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
             <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
         </StackPanel>
-        <TextBox x:Name="StatusTextBox" Grid.Row="5" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
+        <Label Content="Status Output:" Grid.Row="5" Margin="10,0,10,10"/>
+        <TextBox x:Name="StatusTextBox" Grid.Row="6" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
     </Grid>
 </Window>
 "@
@@ -145,7 +147,7 @@ $copyButton.Add_Click({
         return
     }
 
-    # Get the folder for users
+    # Get the satellite zone name
     $userFolder = $userFolderBox.Text
 
     # Get the selected applications
