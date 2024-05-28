@@ -10,8 +10,8 @@ Import-Module Citrix*
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -29,14 +29,14 @@ Import-Module Citrix*
                 <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
             </DataGrid.Columns>
         </DataGrid>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10">
-            <Label Content="Application Groups (from Destination Controller):" Width="250"/>
+        <StackPanel Grid.Row="3" Margin="10">
+            <Label x:Name="ApplicationGroupsLabel" Content="Application Groups" Width="250"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
         </StackPanel>
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
+        <StackPanel Grid.Row="4" Margin="10">
             <Label Content="Satellite Zone Name:" Width="150"/>
             <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
-            <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
+            <Button x:Name="CopyButton" Content="Copy Applications" Width="150" Margin="10,0,0,0"/>
         </StackPanel>
         <Label Content="Status Output:" Grid.Row="5" Margin="10,0,10,10"/>
         <TextBox x:Name="StatusTextBox" Grid.Row="6" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
@@ -53,6 +53,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $sourceControllerBox = $window.FindName("SourceController")
 $destinationControllerBox = $window.FindName("DestinationController")
 $applicationGroupListBox = $window.FindName("ApplicationGroupList")
+$applicationGroupsLabel = $window.FindName("ApplicationGroupsLabel")
 $userFolderBox = $window.FindName("UserFolder")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
@@ -83,6 +84,8 @@ $queryButton.Add_Click({
         [System.Windows.MessageBox]::Show("Please enter both source and destination controller addresses.")
         return
     }
+
+    $applicationGroupsLabel.Content = "$destinationController Application Groups"
 
     Append-Status "Querying applications from source controller $sourceController..."
 
