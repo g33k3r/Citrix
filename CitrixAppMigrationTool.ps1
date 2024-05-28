@@ -10,8 +10,8 @@ Import-Module Citrix*
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -23,12 +23,14 @@ Import-Module Citrix*
             <TextBox x:Name="DestinationController" Width="200"/>
         </StackPanel>
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
-        <DataGrid x:Name="ApplicationsDataGrid" Grid.Row="2" Margin="10" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <ScrollViewer Grid.Row="2" Margin="10" VerticalScrollBarVisibility="Auto">
+            <DataGrid x:Name="ApplicationsDataGrid" Height="200" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </ScrollViewer>
         <StackPanel Grid.Row="3" Margin="10">
             <Label x:Name="ApplicationGroupsLabel" Content="Application Groups" Width="250"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
