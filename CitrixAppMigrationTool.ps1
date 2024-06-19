@@ -5,43 +5,54 @@ Import-Module Citrix*
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Citrix App Migration Tool" Height="750" Width="700">
+        Title="Citrix App Migration Tool" Height="600" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="150"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+        
+        <Grid.ColumnDefinitions> 
+            <ColumnDefinition Width = "Auto" />
+            <ColumnDefinition Width = "400" /> 
+        </Grid.ColumnDefinitions> 
+
+        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Margin="10">
             <Label Content="Source Controller:" Width="120"/>
             <TextBox x:Name="SourceController" Width="200" Margin="0,0,10,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
             <Label Content="Destination Controller:" Width="150"/>
             <TextBox x:Name="DestinationController" Width="200"/>
         </StackPanel>
+        
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
-        <ScrollViewer Grid.Row="2" Margin="10" VerticalScrollBarVisibility="Auto">
-            <DataGrid x:Name="ApplicationsDataGrid" Height="200" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </ScrollViewer>
-        <StackPanel Grid.Row="3" Margin="10">
-            <Label x:Name="ApplicationGroupsLabel" Content="Application Groups" Width="250"/>
-            <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
+        <DataGrid x:Name="ApplicationsDataGrid" Grid.Column="1" Grid.Row="2" Grid.RowSpan="5" Margin="10" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Enabled" Binding="{Binding Enabled}" Width="Auto"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10">
+            <Label Content="Destination App Groups:" Width="150"/>
+            <ListBox x:Name="ApplicationGroupList" Width="200" Margin="0,0,10,0"/>
         </StackPanel>
-        <StackPanel Grid.Row="4" Margin="10">
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
             <Label Content="Satellite Zone Name:" Width="150"/>
             <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
-            <Button x:Name="CopyButton" Content="Copy Applications" Width="150" Margin="10,0,0,0"/>
         </StackPanel>
-        <Label Content="Status Output:" Grid.Row="5" Margin="10,0,10,10"/>
-        <TextBox x:Name="StatusTextBox" Grid.Row="6" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
+        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="10">
+            <Button x:Name="CopyButton" Content="Copy Applications" Width="150"/>
+        </StackPanel>
+        <Label Content="Status Output:" Grid.Row="6" Margin="10,0,10,10"/>
+        <TextBox x:Name="StatusTextBox" Grid.Row="7" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
     </Grid>
 </Window>
 "@
@@ -55,7 +66,6 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $sourceControllerBox = $window.FindName("SourceController")
 $destinationControllerBox = $window.FindName("DestinationController")
 $applicationGroupListBox = $window.FindName("ApplicationGroupList")
-$applicationGroupsLabel = $window.FindName("ApplicationGroupsLabel")
 $userFolderBox = $window.FindName("UserFolder")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
@@ -63,7 +73,7 @@ $applicationsDataGrid = $window.FindName("ApplicationsDataGrid")
 $statusTextBox = $window.FindName("StatusTextBox")
 
 # Define a function to append text to the status TextBox
-function Append-Status {
+function Add-Status {
     param (
         [string]$text
     )
@@ -87,9 +97,7 @@ $queryButton.Add_Click({
         return
     }
 
-    $applicationGroupsLabel.Content = "$destinationController Application Groups"
-
-    Append-Status "Querying applications from source controller $sourceController..."
+    Add-Status "Querying applications from source controller $sourceController..."
 
     # Query the applications from the source controller
     try {
@@ -103,13 +111,13 @@ $queryButton.Add_Click({
             })
         }
 
-        Append-Status "Successfully queried applications from source controller."
+        Add-Status "Successfully queried applications from source controller."
     } catch {
         [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
-        Append-Status "Failed to query applications from source controller."
+        Add-Status "Failed to query applications from source controller."
     }
 
-    Append-Status "Querying application groups from destination controller $destinationController..."
+    Add-Status "Querying application groups from destination controller $destinationController..."
 
     # Query the application groups from the destination controller
     try {
@@ -120,10 +128,10 @@ $queryButton.Add_Click({
             $applicationGroupListBox.Items.Add($group.Name)
         }
 
-        Append-Status "Successfully queried application groups from destination controller."
+        Add-Status "Successfully queried application groups from destination controller."
     } catch {
         [System.Windows.MessageBox]::Show("Failed to query application groups from the destination controller. Please check the address and try again.")
-        Append-Status "Failed to query application groups from destination controller."
+        Add-Status "Failed to query application groups from destination controller."
     }
 })
 
@@ -141,14 +149,14 @@ $copyButton.Add_Click({
         return
     }
 
-    Append-Status "Copying applications to destination controller $destinationController in application group $selectedAppGroupName..."
+    Add-Status "Copying applications to destination controller $destinationController in application group $selectedAppGroupName..."
 
     # Retrieve the application group object from the destination controller
     $selectedAppGroup = Get-BrokerApplicationGroup -AdminAddress $destinationController -Name $selectedAppGroupName
 
     if ($null -eq $selectedAppGroup) {
         [System.Windows.MessageBox]::Show("Selected application group not found on the destination controller.")
-        Append-Status "Selected application group not found on the destination controller."
+        Add-Status "Selected application group not found on the destination controller."
         return
     }
 
@@ -160,7 +168,7 @@ $copyButton.Add_Click({
 
     if ($selectedApplications.Count -eq 0) {
         [System.Windows.MessageBox]::Show("Please select at least one application to copy.")
-        Append-Status "No applications selected for copying."
+        Add-Status "No applications selected for copying."
         return
     }
 
@@ -208,7 +216,7 @@ $copyButton.Add_Click({
                 }
 
                 # Log the parameters for debugging
-                Append-Status "Copying application: $appName with parameters: $($params | Out-String)"
+                Add-Status "Copying application: $appName with parameters: $($params | Out-String)"
 
                 # Create the application in the destination controller within the specified application group
                 $newApp = New-BrokerApplication @params
@@ -218,17 +226,17 @@ $copyButton.Add_Click({
                     Set-BrokerApplication -Name $newApp.Name -ClientFolder $userFolder
                 }
 
-                Append-Status "Successfully copied application: $appName"
+                Add-Status "Successfully copied application: $appName"
             } catch {
                 [System.Windows.MessageBox]::Show("Failed to copy application: $($selectedApp.Name). Error: $_")
-                Append-Status "Failed to copy application: $($selectedApp.Name). Error: $_"
+                Add-Status "Failed to copy application: $($selectedApp.Name). Error: $_"
             }
         }
 
-        Append-Status "Applications copied successfully."
+        Add-Status "Applications copied successfully."
     } catch {
         [System.Windows.MessageBox]::Show("Failed to copy applications to the destination controller. Error: $_")
-        Append-Status "Failed to copy applications to the destination controller. Error: $_"
+        Add-Status "Failed to copy applications to the destination controller. Error: $_"
     }
 })
 
@@ -237,5 +245,5 @@ try {
     $window.ShowDialog() | Out-Null
 } catch {
     [System.Windows.MessageBox]::Show("An error occurred: $_")
-    Append-Status "An error occurred: $_"
+    Add-Status "An error occurred: $_"
 }
