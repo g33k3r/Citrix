@@ -41,7 +41,7 @@ Import-Module Citrix*
             </DataGrid.Columns>
         </DataGrid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10">
-            <Label Content="Destination App Groups:" Width="150"/>
+            <Label x:Name="ApplicationGroupLabel" Content="Destination App Groups:" Width="150"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Margin="0,0,10,0"/>
         </StackPanel>
         <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="10">
@@ -74,6 +74,8 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $sourceControllerBox = $window.FindName("SourceController")
 $destinationControllerBox = $window.FindName("DestinationController")
 $applicationGroupListBox = $window.FindName("ApplicationGroupList")
+$applicationGroupLabel = $window.FindName("ApplicationGroupLabel")
+$applicationFolderListBox = $window.FindName("AdminFoldersList")
 $userFolderBox = $window.FindName("UserFolder")
 $queryButton = $window.FindName("QueryButton")
 $copyButton = $window.FindName("CopyButton")
@@ -91,57 +93,82 @@ function Add-Status {
 
 # Define the event handler for the query button click
 $queryButton.Add_Click({
-    # Clear the DataGrid and ListBox
-    $applicationsDataGrid.Items.Clear()
-    $applicationGroupListBox.Items.Clear()
-    $statusTextBox.Clear()
-
-    # Get the source and destination controller addresses
-    $sourceController = $sourceControllerBox.Text
-    $destinationController = $destinationControllerBox.Text
-
-    if ([string]::IsNullOrEmpty($sourceController) -or [string]::IsNullOrEmpty($destinationController)) {
-        [System.Windows.MessageBox]::Show("Please enter both source and destination controller addresses.")
-        return
-    }
-
-    Add-Status "Querying applications from source controller $sourceController..."
-
-    # Query the applications from the source controller
     try {
-        $applications = Get-BrokerApplication -AdminAddress $sourceController
+            # Clear the DataGrid and ListBox
+            $applicationsDataGrid.Items.Clear()
+            $applicationGroupListBox.Items.Clear()
+            $adminFolderListBox.Items.Clear()
+            $statusTextBox.Clear()
 
-        # Populate the DataGrid with application names and enabled status
-        foreach ($app in $applications) {
-            $applicationsDataGrid.Items.Add([PSCustomObject]@{
-                Name = $app.Name
-                Enabled = $app.Enabled
-            })
+            # Get the source and destination controller addresses
+            $sourceController = $sourceControllerBox.Text
+            $destinationController = $destinationControllerBox.Text
+
+            if ([string]::IsNullOrEmpty($sourceController) -or [string]::IsNullOrEmpty($destinationController)) {
+                [System.Windows.MessageBox]::Show("Please enter both source and destination controller addresses.")
+                return
+            }
+
+            $applicationGroupsLabel.Content = "$destinationController Application Groups"
+
+            Add-Status "Querying applications from source controller $sourceController..."
+
+            # Query the applications from the source controller
+            try {
+                $applications = Get-BrokerApplication -AdminAddress $sourceController
+
+                # Populate the DataGrid with application names and enabled status
+                foreach ($app in $applications) {
+                    $applicationsDataGrid.Items.Add([PSCustomObject]@{
+                        Name = $app.Name
+                        Enabled = $app.Enabled
+                    })
+                }
+
+                Add-Status "Successfully queried applications from source controller."
+            } catch {
+                [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
+                Add-Status "Failed to query applications from source controller. Error: $_"
+            }
+
+            Add-Status "Querying application groups from destination controller $destinationController..."
+
+            # Query the application groups from the destination controller
+            try {
+                $appGroups = Get-BrokerApplicationGroup -AdminAddress $destinationController
+
+                # Populate the ListBox with application group names
+                foreach ($group in $appGroups) {
+                    $applicationGroupListBox.Items.Add($group.Name)
+                }
+
+                Add-Status "Successfully queried application groups from destination controller."
+            } catch {
+                [System.Windows.MessageBox]::Show("Failed to query application groups from the destination controller. Please check the address and try again.")
+                Add-Status "Failed to query application groups from destination controller. Error: $_"
+            }
+
+            Add-Status "Querying admin folders from destination controller $destinationController..."
+
+            # Query the admin folders from the destination controller
+            try {
+                $adminFolders = Get-BrokerAdminFolder -AdminAddress $destinationController
+
+                # Populate the ListBox with admin folder names
+                foreach ($folder in $adminFolders) {
+                    $adminFolderListBox.Items.Add($folder.Name)
+                }
+
+                Add-Status "Successfully queried admin folders from destination controller."
+            } catch {
+                [System.Windows.MessageBox]::Show("Failed to query admin folders from the destination controller. Please check the address and try again.")
+                Add-Status "Failed to query admin folders from destination controller. Error: $_"
+            }
+        } catch {
+            [System.Windows.MessageBox]::Show("An error occurred while querying applications: $_")
+            Add-Status "An error occurred while querying applications: $_"
         }
-
-        Add-Status "Successfully queried applications from source controller."
-    } catch {
-        [System.Windows.MessageBox]::Show("Failed to query applications from the source controller. Please check the address and try again.")
-        Add-Status "Failed to query applications from source controller."
-    }
-
-    Add-Status "Querying application groups from destination controller $destinationController..."
-
-    # Query the application groups from the destination controller
-    try {
-        $appGroups = Get-BrokerApplicationGroup -AdminAddress $destinationController
-
-        # Populate the ListBox with application group names
-        foreach ($group in $appGroups) {
-            $applicationGroupListBox.Items.Add($group.Name)
-        }
-
-        Add-Status "Successfully queried application groups from destination controller."
-    } catch {
-        [System.Windows.MessageBox]::Show("Failed to query application groups from the destination controller. Please check the address and try again.")
-        Add-Status "Failed to query application groups from destination controller."
-    }
-})
+    })
 
 # Define the event handler for the copy button click
 $copyButton.Add_Click({
