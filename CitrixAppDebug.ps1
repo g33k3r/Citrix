@@ -15,7 +15,6 @@ Import-Module Citrix*
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
@@ -36,7 +35,7 @@ Import-Module Citrix*
         
         <Button x:Name="QueryButton" Content="Query Applications" Grid.Row="1" Width="150" Margin="10" HorizontalAlignment="Left"/>
 
-        <ScrollViewer Grid.Row="3" Grid.Column="1" Margin="10" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="2" Grid.Column="1" Margin="10" VerticalScrollBarVisibility="Auto">
             <DataGrid x:Name="ApplicationsDataGrid" Height="150" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Extended" SelectionUnit="FullRow" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Application Name" Binding="{Binding Name}" Width="*"/>
@@ -45,24 +44,24 @@ Import-Module Citrix*
             </DataGrid>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="4" Margin="10">
+        <StackPanel Grid.Row="3" Margin="10">
             <Label x:Name="ApplicationGroupsLabel" Content="Application Groups" Width="250"/>
             <ListBox x:Name="ApplicationGroupList" Width="200" Height="100" Margin="0,0,10,0"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="5" Margin="10">
+        <StackPanel Grid.Row="4" Margin="10">
             <Label Content="Satellite Zone Name:" Width="150"/>
             <TextBox x:Name="UserFolder" Width="200" Margin="0,0,10,0"/>
             <Button x:Name="CopyButton" Content="Copy Applications" Width="150" Margin="10,0,0,0"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="6" Margin="10">
+        <StackPanel Grid.Row="5" Margin="10">
             <Label Content="Admin Folders:" Width="150"/>
             <ListBox x:Name="AdminFolderList" Width="200" Height="100" Margin="0,0,10,0"/>
         </StackPanel>
 
-        <Label Content="Status Output:" Grid.Row="7" Margin="10,0,10,10"/>
-        <TextBox x:Name="StatusTextBox" Grid.Row="8" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
+        <Label Content="Status Output:" Grid.Row="6" Margin="10,0,10,10"/>
+        <TextBox x:Name="StatusTextBox" Grid.Row="7" Margin="10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
     </Grid>
 </Window>
 "@
